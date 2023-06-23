@@ -1,12 +1,11 @@
+import Part from './Part'
 
 const Content = (props) => {
   return (
     <>
     {
-      props.parts.map((curValue) => (
-        <p>
-          {curValue.name} {curValue.exercises}
-        </p>
+      props.parts.map((curValue, i) => (
+        <Part key={i} name={curValue.name} exercises={curValue.exercises} />
       ))
     }
     </>
