@@ -38,22 +38,6 @@ const App = () => {
           <Country key={i} data={c} />
         ))
       }
-      {/* {
-        result && result.length === 1 &&
-          <div>
-            <p>capital {result[0].capital[0]}</p>
-            <p>area {result[0].area}</p>
-
-            <ul><b>languages:</b>
-            {
-              Object.keys(result[0].languages).map((key) => (
-                <li key={key}>{result[0].languages[key]}</li>
-              ))
-            }
-            </ul>
-            <img src={result[0].flags.svg} width='200px' />
-          </div>
-      } */}
     </div>
   )
 }
