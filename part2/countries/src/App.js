@@ -1,101 +1,59 @@
 import { useEffect, useState } from 'react'
-import PersonAPI from './PersonAPI'
-import Filter from './components/Filter'
-import PersonForm from './components/PersonForm'
-import Persons from './components/Persons'
-import Notification from './components/Notification'
-
+import axios from 'axios'
+import Country from './components/Country'
 const App = () => {
-  const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState('')
-  const [message, setMessage] = useState({message: '', isError: false})
-
-  const handleChangeNewName = (e) => {
-    setNewName(e.target.value)
-  }
-  const [newNumber, setNewNumber] = useState('')
-  const handleChangeNewNumber = (e) => {
-    setNewNumber(e.target.value)
-  }
   const [filter, setFilter] = useState('')
-  const handleChangeFilter = (e) => {
-    setFilter(e.target.value)
-  }
+  const [countries, setCountries] = useState([])
+  const [result, setResult] = useState([])
 
   useEffect(() => {
-    PersonAPI.getAll().then(data => {
-      console.log(data)
-      setPersons(data)
-    }).catch(error => {
-      console.log('getAll error', error)
-      setMessage({message: error, isError: true})
-    })
+    axios.get('https://studies.cs.helsinki.fi/restcountries/api/all').then(
+      response => response.data
+    ).then(
+      allCountries => {
+        setCountries(allCountries);
+      }
+    )
   }, [])
 
-  console.log('render', persons.length, 'persons')
+  const handleChange = (e) => {
+    const newFilter = e.target.value
+    setFilter(newFilter)
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+    const filtered = countries.filter(c => c.name.common.toLowerCase().indexOf(newFilter) >= 0)
 
-    const existPersons = persons.filter((p, i) => p.name === newName)
-    if (existPersons.length > 0) {
-      if (window.confirm(`${newName} is already added to phonebook, replace the old number with new one?`)) {
-        const existId = existPersons[0].id;
-        const existPerson = existPersons[0];
-        PersonAPI.update(existId, {...existPerson, number: newNumber})
-        .then(updatedPerson => {
-          setPersons(persons.map(p => p.id !== updatedPerson.id ? p : updatedPerson))
-        })
-        .catch(error => {
-          console.log('update error', error)
-          setMessage({message: error, isError: true})
-        })
-      }
+    if (filtered.length > 10) {
+      setResult(null)
     } else {
-      PersonAPI.create({ name: newName, number: newNumber}).then(newPerson => {
-        setPersons([...persons, newPerson])
-        setMessage({message: `Added ${newName}`, isError: false})
-      })
-      .catch(error => {
-        console.log('create error', error)
-        setMessage({message: error, isError: true})
-      })
-    }
-
-    setNewName('')
-    setNewNumber('')
-  }
-
-  const onDelete = (id, name) => {
-    if (window.confirm(`Delete ${name}?`)) {
-      PersonAPI.deletePerson(id).then(data => {
-        console.log('deleted', data)
-        setPersons(persons.filter(p => p.id !== id))
-      }).catch(error => {
-        console.log('delete error', error)
-        setMessage({message: `Information of ${name} was has already been deleted from server`, isError: true})
-      })
+      setResult(filtered)
     }
   }
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      find countries <input onChange={handleChange} />
 
-      {message.message && <Notification message={message.message} isError={message.isError} />}
+      {result && result.length >= 1 &&
+        result.map((c, i) => (
+          <Country key={i} data={c} />
+        ))
+      }
+      {/* {
+        result && result.length === 1 &&
+          <div>
+            <p>capital {result[0].capital[0]}</p>
+            <p>area {result[0].area}</p>
 
-      <Filter filter={filter} onChange={handleChangeFilter} />
-
-      <PersonForm
-        onSubmit={handleSubmit}
-        newName={newName}
-        newNumber={newNumber}
-        onChangeNewName={handleChangeNewName}
-        onChangeNewNumber={handleChangeNewNumber}
-      />
-
-      <h2>Numbers</h2>
-      <Persons list={persons} filter={filter} onDelete={onDelete}/>
+            <ul><b>languages:</b>
+            {
+              Object.keys(result[0].languages).map((key) => (
+                <li key={key}>{result[0].languages[key]}</li>
+              ))
+            }
+            </ul>
+            <img src={result[0].flags.svg} width='200px' />
+          </div>
+      } */}
     </div>
   )
 }
